@@ -1,0 +1,71 @@
+@mixin border-radius($radius) {
+	border-radius: $radius;
+	background-clip: padding-box;
+}
+
+@mixin border-top-radius($radius) {
+  border-top-right-radius: $radius;
+  border-top-left-radius: $radius;
+  background-clip: padding-box;
+}
+
+@mixin border-right-radius($radius) {
+  border-bottom-right-radius: $radius;
+  border-top-right-radius: $radius;
+  background-clip: padding-box;
+}
+
+@mixin border-bottom-radius($radius) {
+  border-bottom-right-radius: $radius;
+  border-bottom-left-radius: $radius;
+  background-clip: padding-box;
+}
+
+@mixin border-left-radius($radius) {
+  border-bottom-left-radius: $radius;
+  border-top-left-radius: $radius;
+  background-clip: padding-box;
+}
+
+@mixin placeholder {
+  &::-webkit-input-placeholder {@content}
+  &::-moz-placeholder {@content}
+  &:-moz-placeholder {@content}
+  &:-ms-input-placeholder {@content}
+}
+
+@mixin md {
+	@media screen and (max-width: #{map-get($grid-breakpoints, lg) - 1}) {
+		@content;
+	}
+}
+
+@mixin sm {
+	@media screen and (max-width: #{map-get($grid-breakpoints, md) - 1}) {
+		@content;
+	}
+}
+
+@mixin lg-only {
+  @media screen and (min-width: map-get($grid-breakpoints, lg)) {
+    @content;
+  }
+}
+
+@mixin lg-md-only {
+  @media screen and (min-width: map-get($grid-breakpoints, md)) {
+    @content;
+  }
+}
+
+@mixin md-only {
+	@media screen and  (max-width: #{map-get($grid-breakpoints, lg) - 1}) and (min-width: map-get($grid-breakpoints, md)) {
+		@content;
+	}
+}
+
+@mixin sm-only {
+  @media screen and  (max-width: #{map-get($grid-breakpoints, md) - 1}) and (min-width: map-get($grid-breakpoints, sm)) {
+    @content;
+  }
+}
