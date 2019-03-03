@@ -39,7 +39,7 @@
 |- |- |- |- _template.scss\
 |- |- |- import\
 |- |- |- |- _mixins.scss\
-|- |- |- |- _variables.scss
+|- |- |- |- _variables.scss\
 |- modules\
 |- pages\
 |- |- index.html
