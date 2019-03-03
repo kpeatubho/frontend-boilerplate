@@ -1,65 +1,88 @@
 'use strict'
 
 var gulp = require('gulp'),
-    watch = require('gulp-watch'),
     prefixer = require('gulp-autoprefixer'),
-    uglify = require('gulp-uglify'),
-    sourcemaps = require('gulp-sourcemaps'),
     gfinclude = require('gulp-file-include'),
     sass = require('gulp-sass'),
-    cssmin = require('gulp-minify-css'),
     imagemin = require('gulp-imagemin'),
-    pngquant = require('imagemin-pngquant'),
-    rimraf = require('rimraf'),
-    browserSync = require('browser-sync'),
-    wait = require('gulp-wait'),
+    browsersync = require('browser-sync').create(),
     plumber = require('gulp-plumber'),
     babel = require('gulp-babel'),
     newer = require('gulp-newer'),
-    spritesmith = require('gulp.spritesmith'),
     rigger = require('gulp-rigger'),
-    iconfont = require('gulp-iconfont'),
-    iconfontcss = require('gulp-iconfont-css'),
+    giconfont = require('gulp-iconfont'),
+    giconfontcss = require('gulp-iconfont-css'),
     compress = require('compression'),
-    reload = browserSync.reload
+    minify = require('gulp-minifier')
     
     
 var path = {
     build: {
         html: 'build/',
-        js: 'build/js/',
-        css: 'build/css/',
-        img: 'build/img/',
-        fonts: 'build/fonts/',
-        sprites: 'src/img/',
-        spritesCss: 'src/scss/common/',
-        iconfont: 'src/fonts/',
+        htmlDesktop: 'build/desktop/',
+        htmlTablet: 'build/tablet/',
+        htmlMobile: 'build/mobile/',
+        js: 'build/assets/js/',
+        jsDesktop: 'build/assets/desktop/js/',
+        jsTablet: 'build/assets/tablet/js/',
+        jsMobile: 'build/assets/mobile/js/',
+        css: 'build/assets/css/',
+        cssDesktop: 'build/assets/desktop/css/',
+        cssTablet: 'build/assets/tablet/css/',
+        cssMobile: 'build/assets/mobile/css/',
+        img: 'build/assets/img/',
+        imgDesktop: 'build/assets/desktop/img/',
+        imgTablet: 'build/assets/tablet/img/',
+        imgMobile: 'build/assets/mobile/img/',
+        fonts: 'build/assets/fonts/',
+        fontsDesktop: 'build/assets/desktop/fonts/',
+        fontsTablet: 'build/assets/tablet/fonts/',
+        fontsMobile: 'build/assets/mobile/fonts/',
+        iconfont: 'src/assets/fonts/',
+        iconfontDesktop: 'src/assets/desktop/fonts/',
+        iconfontTablet: 'src/assets/tablet/fonts/',
+        iconfontMobile: 'src/assets/mobile/fonts/',
         ajax: 'build/ajax/'
     },
     src: {
-        html: 'src/*.html',
-        js: 'src/js/*.js',
-        scss: 'src/scss/*.scss',
-        img: ['src/img/**/*.*', '!src/img/sprites/*.*', '!src/img/iconfont/*.svg'],
-        fonts: 'src/fonts/**/*.*',
-        sprites: 'src/img/sprites/*.*',
-        iconfont: 'src/img/iconfont/*.svg',
+        html: 'src/pages/*.html',
+        htmlDesktop: 'src/pages/desktop/*.html',
+        htmlTablet: 'src/pages/tablet/*.html',
+        htmlMobile: 'src/pages/mobile/*.html',
+        js: 'src/assets/js/*.js',
+        jsDesktop: 'src/assets/desktop/js/*.js',
+        jsTablet: 'src/assets/tablet/js/*.js',
+        jsMobile: 'src/assets/mobile/js/*.js',
+        scss: 'src/assets/scss/*.scss',
+        scssDesktop: 'src/assets/desktop/scss/*.scss',
+        scssTablet: 'src/assets/tablet/scss/*.scss',
+        scssMobile: 'src/assets/mobile/scss/*.scss',
+        img: ['src/assets/img/**/*.*', '!src/assets/img/iconfont/*.svg'],
+        imgDesktop: ['src/assets/desktop/img/**/*.*', '!src/assets/desktop/img/iconfont/*.svg'],
+        imgTablet: ['src/assets/tablet/img/**/*.*', '!src/assets/tablet/img/iconfont/*.svg'],
+        imgMobile: ['src/assets/mobile/img/**/*.*', '!src/assets/desktop/img/iconfont/*.svg'],
+        fonts: ['src/assets/fonts/**/*.*'],
+        fontsDesktop: 'src/assets/desktop/fonts/**/*.*',
+        fontsTablet: 'src/assets/tablet/fonts/**/*.*',
+        fontsMobile: 'src/assets/mobile/fonts/**/*.*',
+        iconfont: ['src/assets/img/iconfont/*.svg'],
+        iconfontDesktop: 'src/assets/desktop/img/iconfont/*.svg',
+        iconfontTablet: 'src/assets/tablet/img/iconfont/*.svg',
+        iconfontMobile: 'src/assets/mobile/img/iconfont/*.svg',
         ajax: 'src/ajax/*.*'
     },
     watch: {
         html: 'src/**/*.html',
-        js: ['src/js/**/*.js', 'src/modules/**/*.js'],
-        scss: ['src/scss/**/*.**css','src/modules/**/*.**css'],
-        img: 'src/img/**/*.*',
-        fonts: 'src/fonts/**/*.*',
-        sprites: 'src/img/sprites/*.*',
-        iconfont: 'src/img/iconfont/*.svg',
+        js: ['src/assets/js/**/*.js', 'src/assets/desktop/js/**/*.js', 'src/assets/tablet/js/**/*.js', 'src/assets/mobile/js/**/*.js', 'src/modules/**/*.js'],
+        scss: ['src/assets/scss/**/*.**css', 'src/assets/desktop/scss/**/*.**css', 'src/assets/tablet/scss/**/*.**css', 'src/assets/mobile/scss/**/*.**css', 'src/modules/**/*.**css'],
+        img: ['src/assets/img/**/*.*', 'src/assets/desktop/img/**/*.*', 'src/assets/tablet/img/**/*.*', 'src/assets/mobile/img/**/*.*', '!src/assets/img/iconfont/*.svg', '!src/assets/desktop/img/iconfont/*.svg', '!src/assets/tablet/img/iconfont/*.svg', '!src/assets/mobile/img/iconfont/*.svg'],
+        fonts: ['src/assets/fonts/**/*.*', 'src/assets/desktop/fonts/**/*.*', 'src/assets/tablet/fonts/**/*.*', 'src/assets/mobile/fonts/**/*.*'],
+        iconfont: ['src/assets/img/iconfont/*.svg', 'src/assets/desktop/img/iconfont/*.svg', 'src/assets/tablet/img/iconfont/*.svg', 'src/assets/mobile/img/iconfont/*.svg'],
         ajax: 'src/ajax/*.*'       
-    },
-    clean: './build'
+    }
 }
 
-var config = {
+const syncConfig = {
     server: {
         baseDir: './build'
     },
@@ -69,32 +92,159 @@ var config = {
     logPrefix: 'build',
     open: false,
     middleware: function (req, res, next) {
+        res.setHeader('Cache-Control', 'max-age=86400');
         var gzip = compress()
         gzip(req, res, next)
-   }
+    }
 }
 
+const projectVariables = {
+    browserTitle: 'Boilerplate'
+}
 
-gulp.task('html:build', function () {
-    gulp.src(path.src.html)
+var context = {
+    sourcemap: process.argv.indexOf('--s') != -1?true:false,
+    minify: process.argv.indexOf('--nm') != -1?false:true
+}
+
+function browserSync(done) {
+    browsersync.init(syncConfig)
+    done()
+}
+
+function streamBrowser (done) {
+    browsersync.stream()
+    done()
+}
+
+function htmlAll () {
+    return gulp
+        .src(path.src.html)
         .pipe(plumber())
         .pipe(rigger())
         .pipe(gfinclude({
             prefix: '@@',
             basepath: 'src/modules/',
+            context: projectVariables
         }))
         .pipe(gulp.dest(path.build.html))
-        .pipe(reload({stream: true}))
-})
+}
 
-
-gulp.task('js:build', function () {
-    gulp.src(path.src.js)
+function htmlDesktop () {
+    return gulp
+        .src(path.src.htmlDesktop)
         .pipe(plumber())
         .pipe(rigger())
         .pipe(gfinclude({
             prefix: '@@',
-            basepath: 'src/js/'
+            basepath: 'src/modules/',
+            context: projectVariables
+        }))
+        .pipe(gulp.dest(path.build.htmlDesktop))
+}
+
+function htmlTablet () {
+    return gulp
+        .src(path.src.htmlTablet)
+        .pipe(plumber())
+        .pipe(rigger())
+        .pipe(gfinclude({
+            prefix: '@@',
+            basepath: 'src/modules/',
+            context: projectVariables
+        }))
+        .pipe(gulp.dest(path.build.htmlTablet))
+}
+
+function htmlMobile () {
+    return gulp
+        .src(path.src.htmlMobile)
+        .pipe(plumber())
+        .pipe(rigger())
+        .pipe(gfinclude({
+            prefix: '@@',
+            basepath: 'src/modules/',
+            context: projectVariables
+        }))
+        .pipe(gulp.dest(path.build.htmlMobile))
+}
+
+var html = gulp.series(gulp.parallel(htmlAll, htmlDesktop, htmlTablet, htmlMobile), streamBrowser)
+
+var minifyParamsCSS = {}
+if (context.minify) {
+    minifyParamsCSS.minify = true
+    minifyParamsCSS.minifyCSS = true
+}
+if (context.sourcemap) {
+    minifyParamsCSS.minifyCSS = {
+        sourceMap: true
+    }
+}
+
+function scssAll () {
+    return gulp
+        .src(path.src.scss)
+        .pipe(plumber())
+        .pipe(sass())
+        .pipe(prefixer())
+        .pipe(minify(minifyParamsCSS))
+        .pipe(gulp.dest(path.build.css))
+}
+
+function scssDesktop () {
+    return gulp
+        .src(path.src.scssDesktop)
+        .pipe(plumber())
+        .pipe(sass())
+        .pipe(prefixer())
+        .pipe(minify(minifyParamsCSS))
+        .pipe(gulp.dest(path.build.cssDesktop))
+}
+
+function scssTablet () {
+    return gulp
+        .src(path.src.scssTablet)
+        .pipe(plumber())
+        .pipe(sass())
+        .pipe(prefixer())
+        .pipe(minify(minifyParamsCSS))
+        .pipe(gulp.dest(path.build.cssTablet))
+}
+
+function scssMobile () {
+    return gulp
+        .src(path.src.scssMobile)
+        .pipe(plumber())
+        .pipe(sass())
+        .pipe(prefixer())
+        .pipe(minify(minifyParamsCSS))
+        .pipe(gulp.dest(path.build.cssMobile))
+}
+
+var scss = gulp.series(gulp.parallel(scssAll, scssDesktop, scssTablet, scssMobile), streamBrowser)
+
+var minifyParamsJS = {}
+if (context.minify) {
+    minifyParamsJS.minify = true
+    minifyParamsJS.minifyJS = true
+}
+if (context.sourcemap) {
+    minifyParamsJS.minifyJS = {
+        sourceMap: true
+    }
+}
+
+function jsAll () {
+    return gulp
+        .src(path.src.js)
+        .pipe(plumber())
+        .pipe(rigger({
+            cwd: './'
+        }))
+        .pipe(gfinclude({
+            prefix: '@@',
+            basepath: 'src/assets/js/'
         }))
         .pipe(babel({
             presets: [
@@ -103,129 +253,270 @@ gulp.task('js:build', function () {
                 ]
             ]
         })) 
-        .pipe(sourcemaps.init())
-        .pipe(uglify())
-        .pipe(sourcemaps.write('./'))
+        .pipe(minify(minifyParamsJS))
         .pipe(gulp.dest(path.build.js))
-        .pipe(reload({stream: true}))
-})
+}
 
-gulp.task('scss:build', function () {
-    gulp.src(path.src.scss)
+function jsDesktop () {
+    return gulp
+        .src(path.src.jsDesktop)
         .pipe(plumber())
-        .pipe(sourcemaps.init())
-        .pipe(wait(300))
-        .pipe(sass())
-        .pipe(prefixer())
-        .pipe(cssmin())
-        .pipe(sourcemaps.write('./'))
-        .pipe(gulp.dest(path.build.css))
-        .pipe(reload({stream: true}))
-})
+        .pipe(rigger({
+            cwd: './'
+        }))
+        .pipe(gfinclude({
+            prefix: '@@',
+            basepath: 'src/assets/desktop/js/'
+        }))
+        .pipe(babel({
+            presets: [
+                [
+                    '@babel/env'
+                ]
+            ]
+        })) 
+        .pipe(minify(minifyParamsJS))
+        .pipe(gulp.dest(path.build.jsDesktop))
+}
 
+function jsTablet () {
+    return gulp
+        .src(path.src.jsTablet)
+        .pipe(plumber())
+        .pipe(rigger({
+            cwd: './'
+        }))
+        .pipe(gfinclude({
+            prefix: '@@',
+            basepath: 'src/assets/tablet/js/'
+        }))
+        .pipe(babel({
+            presets: [
+                [
+                    '@babel/env'
+                ]
+            ]
+        })) 
+        .pipe(minify(minifyParamsJS))
+        .pipe(gulp.dest(path.build.jsTablet))
+}
 
-gulp.task('image:build', function () {
-    return gulp.src(path.src.img)
+function jsMobile () {
+    return gulp
+        .src(path.src.jsMobile)
+        .pipe(plumber())
+        .pipe(rigger({
+            cwd: './'
+        }))
+        .pipe(gfinclude({
+            prefix: '@@',
+            basepath: 'src/assets/mobile/js/'
+        }))
+        .pipe(babel({
+            presets: [
+                [
+                    '@babel/env'
+                ]
+            ]
+        })) 
+        .pipe(minify(minifyParamsJS))
+        .pipe(gulp.dest(path.build.jsMobile))
+}
+
+var js = gulp.series(gulp.parallel(jsAll, jsDesktop, jsTablet, jsMobile), streamBrowser)
+
+function imgAll () {
+    return gulp
+        .src(path.src.img)
         .pipe(plumber())
         .pipe(newer(path.build.img))
         .pipe(imagemin({
             progressive: true,
             svgoPlugins: [{removeViewBox: false}],
-            use: [pngquant()],
             interlaced: true
         }))
         .pipe(gulp.dest(path.build.img))
-        .pipe(reload({stream: true}))
-})
+}
 
-gulp.task('fonts:build', function() {
-    gulp.src(path.src.fonts)
+function imgDesktop () {
+    return gulp
+        .src(path.src.imgDesktop)
+        .pipe(plumber())
+        .pipe(newer(path.build.imgDesktop))
+        .pipe(imagemin({
+            progressive: true,
+            svgoPlugins: [{removeViewBox: false}],
+            interlaced: true
+        }))
+        .pipe(gulp.dest(path.build.imgDesktop))
+}
+
+function imgTablet () {
+    return gulp
+        .src(path.src.imgTablet)
+        .pipe(plumber())
+        .pipe(newer(path.build.imgTablet))
+        .pipe(imagemin({
+            progressive: true,
+            svgoPlugins: [{removeViewBox: false}],
+            interlaced: true
+        }))
+        .pipe(gulp.dest(path.build.imgTablet))
+}
+
+function imgMobile () {
+    return gulp
+        .src(path.src.imgMobile)
+        .pipe(plumber())
+        .pipe(newer(path.build.imgMobile))
+        .pipe(imagemin({
+            progressive: true,
+            svgoPlugins: [{removeViewBox: false}],
+            interlaced: true
+        }))
+        .pipe(gulp.dest(path.build.imgMobile))
+}
+
+var img = gulp.series(gulp.parallel(imgAll, imgDesktop, imgTablet, imgMobile), streamBrowser)
+
+function fontsAll () {
+    return gulp
+        .src(path.src.fonts)
         .pipe(plumber())
         .pipe(gulp.dest(path.build.fonts))
-})
+}
 
-gulp.task('sprites:build', function () {
-    var spriteData =
-        gulp.src(path.src.sprites)
-            .pipe(plumber())
-            .pipe(spritesmith({
-                imgName: 'sprites.png',
-                cssName: 'sprites.scss',
-                cssFormat: 'css',
-                padding: 10
-            }))
-    spriteData.img.pipe(gulp.dest(path.build.sprites))
-    spriteData.css.pipe(gulp.dest(path.build.spritesCss))
-})
-
-gulp.task('iconfont:build', function () {
-    gulp.src([path.src.iconfont])
+function fontsDesktop () {
+    return gulp
+        .src(path.src.fontsDesktop)
         .pipe(plumber())
-        .pipe(iconfontcss({
+        .pipe(gulp.dest(path.build.fontsDesktop))
+}
+
+function fontsTablet () {
+    return gulp
+        .src(path.src.fontsTablet)
+        .pipe(plumber())
+        .pipe(gulp.dest(path.build.fontsTablet))
+}
+
+function fontsMobile () {
+    return gulp
+        .src(path.src.fontsMobile)
+        .pipe(plumber())
+        .pipe(gulp.dest(path.build.fontsMobile))
+}
+
+var fonts = gulp.series(gulp.parallel(fontsAll, fontsDesktop, fontsTablet, fontsMobile), streamBrowser)
+
+function iconfontAll () {
+    return gulp
+        .src(path.src.iconfont)
+        .pipe(plumber())
+        .pipe(giconfontcss({
             fontName: 'iconfont',
             targetPath: '../scss/common/_iconfont.scss',
             fontPath: '../fonts/',
             cssClass: 'iconfont',
-            formats: ['eot', 'ttf']
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2']
         }))
-        .pipe(iconfont({
+        .pipe(giconfont({
             fontName: 'iconfont',
             formats: ['svg', 'ttf', 'eot', 'woff', 'woff2'],
             fontHeight: 1024,
             normalize: true
         }))
         .pipe(gulp.dest(path.build.iconfont))
-})
+}
 
-gulp.task('ajax:build', function() {
-    gulp.src(path.src.ajax)
+function iconfontDesktop () {
+    return gulp
+        .src(path.src.iconfontDesktop)
+        .pipe(plumber())
+        .pipe(giconfontcss({
+            fontName: 'iconfont',
+            targetPath: '../scss/common/_iconfont.scss',
+            fontPath: '../fonts/',
+            cssClass: 'iconfont',
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2']
+        }))
+        .pipe(giconfont({
+            fontName: 'iconfont',
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2'],
+            fontHeight: 1024,
+            normalize: true
+        }))
+        .pipe(gulp.dest(path.build.iconfontDesktop))
+}
+
+function iconfontTablet () {
+    return gulp
+        .src(path.src.iconfontTablet)
+        .pipe(plumber())
+        .pipe(giconfontcss({
+            fontName: 'iconfont',
+            targetPath: '../scss/common/_iconfont.scss',
+            fontPath: '../fonts/',
+            cssClass: 'iconfont',
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2']
+        }))
+        .pipe(giconfont({
+            fontName: 'iconfont',
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2'],
+            fontHeight: 1024,
+            normalize: true
+        }))
+        .pipe(gulp.dest(path.build.iconfontTablet))
+}
+
+function iconfontMobile () {
+    return gulp
+        .src(path.src.iconfontMobile)
+        .pipe(plumber())
+        .pipe(giconfontcss({
+            fontName: 'iconfont',
+            targetPath: '../scss/common/_iconfont.scss',
+            fontPath: '../fonts/',
+            cssClass: 'iconfont',
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2']
+        }))
+        .pipe(giconfont({
+            fontName: 'iconfont',
+            formats: ['svg', 'ttf', 'eot', 'woff', 'woff2'],
+            fontHeight: 1024,
+            normalize: true
+        }))
+        .pipe(gulp.dest(path.build.iconfontMobile))
+}
+
+var iconfont = gulp.series(gulp.parallel(iconfontAll, iconfontDesktop, iconfontTablet, iconfontMobile), streamBrowser)
+
+function ajax () {
+    return gulp
+        .src(path.src.ajax)
         .pipe(plumber())
         .pipe(gulp.dest(path.build.ajax))
-})
+        .pipe(browsersync.stream())
+}
 
-gulp.task('build', [
-    'html:build',
-    'js:build',
-    'sprites:build',
-    'iconfont:build',
-    'image:build',
-    'scss:build',
-    'fonts:build',
-    'ajax:build'
-])
+function watch () {
+    gulp.watch(path.watch.html, html)
+    gulp.watch(path.watch.scss, scss)
+    gulp.watch(path.watch.js, js)
+    gulp.watch(path.watch.img, img)
+    gulp.watch(path.watch.fonts, fonts)
+    gulp.watch(path.watch.iconfont, iconfont)
+    gulp.watch(path.watch.ajax, ajax)
+}
 
-gulp.task('watch', function () {
-    watch([path.watch.html], function () {
-        gulp.start('html:build')
-    })
-    watch(path.watch.scss, function () {
-        gulp.start('scss:build')
-    })
-    watch(path.watch.js, function () {
-        gulp.start('js:build');
-    })
-    watch([path.watch.img], function () {
-        gulp.start('image:build')
-    })
-    watch([path.watch.fonts], function () {
-        gulp.start('fonts:build')
-    })
-    watch([path.watch.sprites], function () {
-        gulp.start('sprites:build')
-    })
-    watch([path.watch.iconfont], function () {
-        gulp.start('iconfont:build')
-    })
-    watch([path.watch.ajax], function () {
-        gulp.start('ajax:build')
-    })
-});
+const build = gulp.parallel(html, scss, js, img, fonts, iconfont, ajax)
+const defaultTask = gulp.series(build, gulp.parallel(browserSync, watch))
 
-gulp.task('clean', function (cb) {
-    rimraf(path.clean, cb)
-})
-
-gulp.task('webserver', function () {
-    browserSync(config)
-});
-gulp.task('default', ['build', 'webserver', 'watch'])
+exports.default = defaultTask
+exports.html = html
+exports.scss = scss
+exports.js = js
+exports.img = img
+exports.fonts = fonts
+exports.iconfont = iconfont
+exports.ajax = ajax
