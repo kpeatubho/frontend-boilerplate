@@ -7,7 +7,6 @@ var gulp = require('gulp'),
     imagemin = require('gulp-imagemin'),
     browsersync = require('browser-sync').create(),
     plumber = require('gulp-plumber'),
-    babel = require('gulp-babel'),
     newer = require('gulp-newer'),
     rigger = require('gulp-rigger'),
     giconfont = require('gulp-iconfont'),
@@ -112,8 +111,8 @@ function browserSync(done) {
     done()
 }
 
-function streamBrowser (done) {
-    browsersync.stream()
+function reloadBrowser (done) {
+    browsersync.reload()
     done()
 }
 
@@ -169,7 +168,7 @@ function htmlMobile () {
         .pipe(gulp.dest(path.build.htmlMobile))
 }
 
-var html = gulp.series(gulp.parallel(htmlAll, htmlDesktop, htmlTablet, htmlMobile), streamBrowser)
+var html = gulp.series(gulp.parallel(htmlAll, htmlDesktop, htmlTablet, htmlMobile), reloadBrowser)
 
 var minifyParamsCSS = {}
 if (context.minify) {
@@ -190,6 +189,7 @@ function scssAll () {
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.css))
+        .pipe(browsersync.stream())
 }
 
 function scssDesktop () {
@@ -200,6 +200,7 @@ function scssDesktop () {
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.cssDesktop))
+        .pipe(browsersync.stream())
 }
 
 function scssTablet () {
@@ -210,6 +211,7 @@ function scssTablet () {
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.cssTablet))
+        .pipe(browsersync.stream())
 }
 
 function scssMobile () {
@@ -220,9 +222,10 @@ function scssMobile () {
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.cssMobile))
+        .pipe(browsersync.stream())
 }
 
-var scss = gulp.series(gulp.parallel(scssAll, scssDesktop, scssTablet, scssMobile), streamBrowser)
+var scss = gulp.parallel(scssAll, scssDesktop, scssTablet, scssMobile)
 
 var minifyParamsJS = {}
 if (context.minify) {
@@ -246,15 +249,9 @@ function jsAll () {
             prefix: '@@',
             basepath: 'src/assets/js/'
         }))
-        .pipe(babel({
-            presets: [
-                [
-                    '@babel/env'
-                ]
-            ]
-        })) 
         .pipe(minify(minifyParamsJS))
         .pipe(gulp.dest(path.build.js))
+        .pipe(browsersync.stream())
 }
 
 function jsDesktop () {
@@ -268,15 +265,9 @@ function jsDesktop () {
             prefix: '@@',
             basepath: 'src/assets/desktop/js/'
         }))
-        .pipe(babel({
-            presets: [
-                [
-                    '@babel/env'
-                ]
-            ]
-        })) 
         .pipe(minify(minifyParamsJS))
         .pipe(gulp.dest(path.build.jsDesktop))
+        .pipe(browsersync.stream())
 }
 
 function jsTablet () {
@@ -290,15 +281,9 @@ function jsTablet () {
             prefix: '@@',
             basepath: 'src/assets/tablet/js/'
         }))
-        .pipe(babel({
-            presets: [
-                [
-                    '@babel/env'
-                ]
-            ]
-        })) 
         .pipe(minify(minifyParamsJS))
         .pipe(gulp.dest(path.build.jsTablet))
+        .pipe(browsersync.stream())
 }
 
 function jsMobile () {
@@ -312,18 +297,12 @@ function jsMobile () {
             prefix: '@@',
             basepath: 'src/assets/mobile/js/'
         }))
-        .pipe(babel({
-            presets: [
-                [
-                    '@babel/env'
-                ]
-            ]
-        })) 
         .pipe(minify(minifyParamsJS))
         .pipe(gulp.dest(path.build.jsMobile))
+        .pipe(browsersync.stream())
 }
 
-var js = gulp.series(gulp.parallel(jsAll, jsDesktop, jsTablet, jsMobile), streamBrowser)
+var js = gulp.parallel(jsAll, jsDesktop, jsTablet, jsMobile)
 
 function imgAll () {
     return gulp
@@ -336,6 +315,7 @@ function imgAll () {
             interlaced: true
         }))
         .pipe(gulp.dest(path.build.img))
+        .pipe(browsersync.stream())
 }
 
 function imgDesktop () {
@@ -349,6 +329,7 @@ function imgDesktop () {
             interlaced: true
         }))
         .pipe(gulp.dest(path.build.imgDesktop))
+        .pipe(browsersync.stream())
 }
 
 function imgTablet () {
@@ -362,6 +343,7 @@ function imgTablet () {
             interlaced: true
         }))
         .pipe(gulp.dest(path.build.imgTablet))
+        .pipe(browsersync.stream())
 }
 
 function imgMobile () {
@@ -375,15 +357,17 @@ function imgMobile () {
             interlaced: true
         }))
         .pipe(gulp.dest(path.build.imgMobile))
+        .pipe(browsersync.stream())
 }
 
-var img = gulp.series(gulp.parallel(imgAll, imgDesktop, imgTablet, imgMobile), streamBrowser)
+var img = gulp.parallel(imgAll, imgDesktop, imgTablet, imgMobile)
 
 function fontsAll () {
     return gulp
         .src(path.src.fonts)
         .pipe(plumber())
         .pipe(gulp.dest(path.build.fonts))
+        .pipe(browsersync.stream())
 }
 
 function fontsDesktop () {
@@ -391,6 +375,7 @@ function fontsDesktop () {
         .src(path.src.fontsDesktop)
         .pipe(plumber())
         .pipe(gulp.dest(path.build.fontsDesktop))
+        .pipe(browsersync.stream())
 }
 
 function fontsTablet () {
@@ -398,6 +383,7 @@ function fontsTablet () {
         .src(path.src.fontsTablet)
         .pipe(plumber())
         .pipe(gulp.dest(path.build.fontsTablet))
+        .pipe(browsersync.stream())
 }
 
 function fontsMobile () {
@@ -405,9 +391,10 @@ function fontsMobile () {
         .src(path.src.fontsMobile)
         .pipe(plumber())
         .pipe(gulp.dest(path.build.fontsMobile))
+        .pipe(browsersync.stream())
 }
 
-var fonts = gulp.series(gulp.parallel(fontsAll, fontsDesktop, fontsTablet, fontsMobile), streamBrowser)
+var fonts = gulp.parallel(fontsAll, fontsDesktop, fontsTablet, fontsMobile)
 
 function iconfontAll () {
     return gulp
@@ -427,6 +414,7 @@ function iconfontAll () {
             normalize: true
         }))
         .pipe(gulp.dest(path.build.iconfont))
+        .pipe(browsersync.stream())
 }
 
 function iconfontDesktop () {
@@ -447,6 +435,7 @@ function iconfontDesktop () {
             normalize: true
         }))
         .pipe(gulp.dest(path.build.iconfontDesktop))
+        .pipe(browsersync.stream())
 }
 
 function iconfontTablet () {
@@ -467,6 +456,7 @@ function iconfontTablet () {
             normalize: true
         }))
         .pipe(gulp.dest(path.build.iconfontTablet))
+        .pipe(browsersync.stream())
 }
 
 function iconfontMobile () {
@@ -487,9 +477,10 @@ function iconfontMobile () {
             normalize: true
         }))
         .pipe(gulp.dest(path.build.iconfontMobile))
+        .pipe(browsersync.stream())
 }
 
-var iconfont = gulp.series(gulp.parallel(iconfontAll, iconfontDesktop, iconfontTablet, iconfontMobile), streamBrowser)
+var iconfont = gulp.parallel(iconfontAll, iconfontDesktop, iconfontTablet, iconfontMobile)
 
 function ajax () {
     return gulp
