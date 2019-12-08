@@ -40,6 +40,8 @@
 |- |- |- import\
 |- |- |- |- _mixins.scss\
 |- |- |- |- _variables.scss\
+|- common\
+|- |- favicon.ico\
 |- modules\
 |- pages\
 |- |- index.html
@@ -57,8 +59,8 @@
 ```assets/scss/common/_iconfont.scss``` при добавлении SVG файлов в ```img/iconfont``` в этот файл будут писаться стили для iconfont\
 ```assets/scss/common/_template.scss``` содержит базовые стили шаблона проекта\
 ```assets/scss/import``` содержит импоритруемые переменные и миксины проекта\
-```assets/scss/import/_mixins.scss``` содержит миксины пректа\
-```assets/scss/import/_variables.scss``` содержит переменные пректа
+```assets/scss/import/_mixins.scss``` содержит миксины проекта\
+```assets/scss/import/_variables.scss``` содержит переменные проекта\
 ```common``` содержит общие файлы и папки, в билде располагаются в корне (например favicon или manifest файл)\
 ```modules``` содержит файлы подключаемых компонентов на странице\
 ```pages``` содержит файлы страниц\
