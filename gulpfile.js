@@ -1,5 +1,10 @@
 'use strict'
 
+// Common settings
+const settings = {
+    fontsGen: true
+}
+
 var gulp = require('gulp'),
     prefixer = require('gulp-autoprefixer'),
     gfinclude = require('gulp-file-include'),
@@ -12,8 +17,11 @@ var gulp = require('gulp'),
     giconfont = require('gulp-iconfont'),
     giconfontcss = require('gulp-iconfont-css'),
     compress = require('compression'),
-    minify = require('gulp-minifier')
-    
+    minify = require('gulp-minifier'),
+    gulpClean = require('gulp-clean'),
+    fontgen = require('gulp-fontgen'),
+    globImporter = require('node-sass-glob-importer'),
+    fs = require('fs')
     
 var path = {
     build: {
@@ -33,15 +41,20 @@ var path = {
         imgDesktop: 'build/assets/desktop/img/',
         imgTablet: 'build/assets/tablet/img/',
         imgMobile: 'build/assets/mobile/img/',
+        fontsTTF: 'src/assets/fonts/',
         fonts: 'build/assets/fonts/',
+        fontsDesktopTTF: 'src/assets/desktop/fonts/',
         fontsDesktop: 'build/assets/desktop/fonts/',
+        fontsTabletTTF: 'src/assets/tablet/fonts/',
         fontsTablet: 'build/assets/tablet/fonts/',
+        fontsMobileTTF: 'src/assets/mobile/fonts/',
         fontsMobile: 'build/assets/mobile/fonts/',
         iconfont: 'src/assets/fonts/',
         iconfontDesktop: 'src/assets/desktop/fonts/',
         iconfontTablet: 'src/assets/tablet/fonts/',
         iconfontMobile: 'src/assets/mobile/fonts/',
-        ajax: 'build/ajax/'
+        ajax: 'build/ajax/',
+        common: 'build/'
     },
     src: {
         html: 'src/pages/*.html',
@@ -60,25 +73,34 @@ var path = {
         imgDesktop: ['src/assets/desktop/img/**/*.*', '!src/assets/desktop/img/iconfont/*.svg'],
         imgTablet: ['src/assets/tablet/img/**/*.*', '!src/assets/tablet/img/iconfont/*.svg'],
         imgMobile: ['src/assets/mobile/img/**/*.*', '!src/assets/desktop/img/iconfont/*.svg'],
-        fonts: ['src/assets/fonts/**/*.*'],
-        fontsDesktop: 'src/assets/desktop/fonts/**/*.*',
-        fontsTablet: 'src/assets/tablet/fonts/**/*.*',
-        fontsMobile: 'src/assets/mobile/fonts/**/*.*',
+        fontsTTF: 'src/assets/fonts/**/*.{ttf,otf}',
+        fonts: ['src/assets/fonts/**/*.*', '!src/assets/fonts/**/*.css'],
+        fontsDesktopTTF: 'src/assets/desktop/fonts/**/*.{ttf,otf}',
+        fontsDesktop: ['src/assets/desktop/fonts/**/*.*', '!src/assets/desktop/fonts/**/*.css'],
+        fontsTabletTTF: 'src/assets/tablet/fonts/**/*.{ttf,otf}',
+        fontsTablet: ['src/assets/tablet/fonts/**/*.*', '!src/assets/tablet/fonts/**/*.css'],
+        fontsMobileTTF: 'src/assets/mobile/fonts/**/*.{ttf,otf}',
+        fontsMobile: ['src/assets/mobile/fonts/**/*.*', '!src/assets/mobile/fonts/**/*.css'],
         iconfont: ['src/assets/img/iconfont/*.svg'],
         iconfontDesktop: 'src/assets/desktop/img/iconfont/*.svg',
         iconfontTablet: 'src/assets/tablet/img/iconfont/*.svg',
         iconfontMobile: 'src/assets/mobile/img/iconfont/*.svg',
-        ajax: 'src/ajax/*.*'
+        ajax: 'src/ajax/*.*',
+        common: 'src/common/**/*.*'
     },
     watch: {
         html: 'src/**/*.html',
         js: ['src/assets/js/**/*.js', 'src/assets/desktop/js/**/*.js', 'src/assets/tablet/js/**/*.js', 'src/assets/mobile/js/**/*.js', 'src/modules/**/*.js'],
         scss: ['src/assets/scss/**/*.**css', 'src/assets/desktop/scss/**/*.**css', 'src/assets/tablet/scss/**/*.**css', 'src/assets/mobile/scss/**/*.**css', 'src/modules/**/*.**css'],
         img: ['src/assets/img/**/*.*', 'src/assets/desktop/img/**/*.*', 'src/assets/tablet/img/**/*.*', 'src/assets/mobile/img/**/*.*', '!src/assets/img/iconfont/*.svg', '!src/assets/desktop/img/iconfont/*.svg', '!src/assets/tablet/img/iconfont/*.svg', '!src/assets/mobile/img/iconfont/*.svg'],
-        fonts: ['src/assets/fonts/**/*.*', 'src/assets/desktop/fonts/**/*.*', 'src/assets/tablet/fonts/**/*.*', 'src/assets/mobile/fonts/**/*.*'],
+        fonts: ['src/assets/fonts/*.{ttf,otf}', 'src/assets/desktop/fonts/*.{ttf,otf}', 'src/assets/tablet/fonts/*.{ttf,otf}', 'src/assets/mobile/fonts/*.{ttf,otf}'],
         iconfont: ['src/assets/img/iconfont/*.svg', 'src/assets/desktop/img/iconfont/*.svg', 'src/assets/tablet/img/iconfont/*.svg', 'src/assets/mobile/img/iconfont/*.svg'],
-        ajax: 'src/ajax/*.*'       
-    }
+        ajax: 'src/ajax/*.*',
+        common: 'src/common/**/*.*'
+    },
+    clean: [
+        'build/'
+    ]
 }
 
 const syncConfig = {
@@ -185,7 +207,9 @@ function scssAll () {
     return gulp
         .src(path.src.scss)
         .pipe(plumber())
-        .pipe(sass())
+        .pipe(sass({
+            importer: globImporter()
+        }))
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.css))
@@ -196,7 +220,9 @@ function scssDesktop () {
     return gulp
         .src(path.src.scssDesktop)
         .pipe(plumber())
-        .pipe(sass())
+        .pipe(sass({
+            importer: globImporter()
+        }))
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.cssDesktop))
@@ -207,7 +233,9 @@ function scssTablet () {
     return gulp
         .src(path.src.scssTablet)
         .pipe(plumber())
-        .pipe(sass())
+        .pipe(sass({
+            importer: globImporter()
+        }))
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.cssTablet))
@@ -218,7 +246,9 @@ function scssMobile () {
     return gulp
         .src(path.src.scssMobile)
         .pipe(plumber())
-        .pipe(sass())
+        .pipe(sass({
+            importer: globImporter()
+        }))
         .pipe(prefixer())
         .pipe(minify(minifyParamsCSS))
         .pipe(gulp.dest(path.build.cssMobile))
@@ -394,7 +424,69 @@ function fontsMobile () {
         .pipe(browsersync.stream())
 }
 
-var fonts = gulp.parallel(fontsAll, fontsDesktop, fontsTablet, fontsMobile)
+function fontsAllGen () {
+    return gulp
+        .src(path.src.fontsTTF)
+        .pipe(plumber())
+        .pipe(fontgen({
+            dest: path.build.fontsTTF,
+            css_fontpath: '../fonts/',
+            collate: true
+        }))
+}
+
+function fontsDesktopGen () {
+    return gulp
+        .src(path.src.fontsDesktopTTF)
+        .pipe(plumber())
+        .pipe(fontgen({
+            dest: path.build.fontsDesktopTTF,
+            css_fontpath: '../fonts/',
+            collate: true
+        }))
+}
+
+function fontsTabletGen () {
+    return gulp
+        .src(path.src.fontsTabletTTF)
+        .pipe(plumber())
+        .pipe(fontgen({
+            dest: path.build.fontsTabletTTF,
+            css_fontpath: '../fonts/',
+            collate: true
+        }))
+}
+
+function fontsMobileGen () {
+    return gulp
+        .src(path.src.fontsMobileTTF)
+        .pipe(plumber())
+        .pipe(fontgen({
+            dest: path.build.fontsMobileTTF,
+            css_fontpath: '../fonts/',
+            collate: true
+        }))
+}
+
+function generateFontsCss (done) {
+    let outputCss = []
+    fs.readdirSync(path.build.fontsTTF).forEach(file => {
+        let stats = fs.lstatSync([path.build.fontsTTF, file].join(''))
+        if (stats.isDirectory()) {
+            outputCss.push('@import \'../../fonts/' + file + '/' + file + '\';')
+        }
+    })
+    let outputFile = [fs.realpathSync([path.build.fontsTTF, '../scss/common/'].join('')), '/_fonts.scss'].join('')
+    fs.writeFileSync(outputFile, outputCss.join('\n'))
+    done()
+}
+
+var fonts
+if (settings.fontsGen) {
+    fonts = gulp.series(gulp.parallel(fontsAllGen, fontsDesktopGen, fontsTabletGen, fontsMobileGen), generateFontsCss, gulp.parallel(fontsAll, fontsDesktop, fontsTablet, fontsMobile))
+} else {
+    fonts = gulp.parallel(fontsAll, fontsDesktop, fontsTablet, fontsMobile)
+}
 
 function iconfontAll () {
     return gulp
@@ -490,6 +582,14 @@ function ajax () {
         .pipe(browsersync.stream())
 }
 
+function common () {
+    return gulp
+        .src(path.src.common)
+        .pipe(plumber())
+        .pipe(gulp.dest(path.build.common))
+        .pipe(browsersync.stream())
+}
+
 function watch () {
     gulp.watch(path.watch.html, html)
     gulp.watch(path.watch.scss, scss)
@@ -498,9 +598,19 @@ function watch () {
     gulp.watch(path.watch.fonts, fonts)
     gulp.watch(path.watch.iconfont, iconfont)
     gulp.watch(path.watch.ajax, ajax)
+    gulp.watch(path.watch.common, common)
 }
 
-const build = gulp.parallel(html, scss, js, img, fonts, iconfont, ajax)
+function clean () {
+    return gulp
+        .src(path.clean, {
+            read: false,
+            allowEmpty: true
+        })
+        .pipe(gulpClean())
+}
+
+const build = gulp.series(clean, gulp.parallel(html, scss, js, img, fonts, iconfont, ajax, common))
 const defaultTask = gulp.series(build, gulp.parallel(browserSync, watch))
 
 exports.default = defaultTask
@@ -511,3 +621,6 @@ exports.img = img
 exports.fonts = fonts
 exports.iconfont = iconfont
 exports.ajax = ajax
+exports.build = build
+exports.clean = clean
+exports.common = common
